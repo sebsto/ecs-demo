@@ -1,0 +1,335 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This stack deploys a VPC with public and private subnets configured in three AZs,
+             three public and three private with NAT gateways in the public subnets
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: production
+    Description: A name for the environment that this cloudformation will be part of.
+  CidrBlock:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: The CIDR block for the VPC
+  PublicOne:
+    Type: String
+    Default: 10.0.0.0/24
+    Description: Subnet numbering
+  PublicTwo:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: Subnet numbering
+  PublicThree:
+    Type: String
+    Default: 10.0.2.0/24
+    Description: Subnet numbering
+  PrivateOne:
+    Type: String
+    Default: 10.0.3.0/24
+    Description: Subnet numbering
+  PrivateTwo:
+    Type: String
+    Default: 10.0.4.0/24
+    Description: Subnet numbering
+  PrivateThree:
+    Type: String
+    Default: 10.0.5.0/24
+    Description: Subnet numbering
+Resources:
+  # VPC in which we will be deploying resources.
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock: !Ref 'CidrBlock'
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref 'EnvironmentName', 'vpc']]
+
+  # Three public subnets, where resources can have public IP addresses
+  PublicSubnetOne:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+         Fn::Select:
+         - 0
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      VpcId: !Ref 'VPC'
+      CidrBlock: !Ref 'PublicOne'
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref 'EnvironmentName', 'PublicOne']]
+  PublicSubnetTwo:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+         Fn::Select:
+         - 1
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      VpcId: !Ref 'VPC'
+      CidrBlock: !Ref 'PublicTwo'
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref 'EnvironmentName', 'PublicTwo']]
+  PublicSubnetThree:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+         Fn::Select:
+         - 2
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      VpcId: !Ref 'VPC'
+      CidrBlock: !Ref 'PublicThree'
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref 'EnvironmentName', 'PublicThree']]
+
+  # Three private subnets where resources will only have private
+  # IP addresses, and will only be reachable by other members of the
+  # VPC
+  PrivateSubnetOne:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+         Fn::Select:
+         - 0
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      VpcId: !Ref 'VPC'
+      CidrBlock: !Ref 'PrivateOne'
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref 'EnvironmentName', 'PrivateOne']]
+  PrivateSubnetTwo:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+         Fn::Select:
+         - 1
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      VpcId: !Ref 'VPC'
+      CidrBlock: !Ref 'PrivateTwo'
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref 'EnvironmentName', 'PrivateTwo']]
+  PrivateSubnetThree:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+         Fn::Select:
+         - 2
+         - Fn::GetAZs: {Ref: 'AWS::Region'}
+      VpcId: !Ref 'VPC'
+      CidrBlock: !Ref 'PrivateThree'
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref 'EnvironmentName', 'PrivateThree']]
+
+  # Setup networking resources for the public subnets. Resources
+  # in the public subnets have public IP addresses and the routing table
+  # sends network traffic via the internet gateway.
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  GatewayAttachement:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref 'VPC'
+      InternetGatewayId: !Ref 'InternetGateway'
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachement
+    Properties:
+      RouteTableId: !Ref 'PublicRouteTable'
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref 'InternetGateway'
+  PublicSubnetOneRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetOne
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnetTwoRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetTwo
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnetThreeRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetThree
+      RouteTableId: !Ref PublicRouteTable
+
+  # Setup networking resources for the private subnets. Resources
+  # in these subnets have only private IP addresses, and must use a NAT
+  # gateway to talk to the internet. We launch three NAT gateways, one for
+  # each private subnet.
+  NatGatewayOneAttachment:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachement
+    Properties:
+        Domain: vpc
+  NatGatewayTwoAttachment:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachement
+    Properties:
+        Domain: vpc
+  NatGatewayThreeAttachment:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachement
+    Properties:
+        Domain: vpc
+  NatGatewayOne:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayOneAttachment.AllocationId
+      SubnetId: !Ref PublicSubnetOne
+  NatGatewayTwo:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayTwoAttachment.AllocationId
+      SubnetId: !Ref PublicSubnetTwo
+  NatGatewayThree:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayThreeAttachment.AllocationId
+      SubnetId: !Ref PublicSubnetThree
+  PrivateRouteTableOne:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+  PrivateRouteOne:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableOne
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayOne
+  PrivateRouteTableOneAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableOne
+      SubnetId: !Ref PrivateSubnetOne
+
+  PrivateRouteTableTwo:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+  PrivateRouteTwo:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableTwo
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayTwo
+  PrivateRouteTableTwoAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableTwo
+      SubnetId: !Ref PrivateSubnetTwo
+
+  PrivateRouteTableThree:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'VPC'
+  PrivateRouteThree:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableThree
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayThree
+  PrivateRouteTableThreeAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableThree
+      SubnetId: !Ref PrivateSubnetThree
+
+  # OPTIONAL: VPC Endpoint for DynamoDB
+  # If a container needs to access DynamoDB this allows a container in the private subnet
+  # to talk to DynamoDB directly without needing to go via the NAT gateway. This reduces
+  # the amount of bandwidth through the gateway, meaning that the gateway is free to serve
+  # your other traffic.
+  DynamoDBEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "*"
+            Principal: "*"
+            Resource: "*"
+      RouteTableIds:
+        - !Ref 'PrivateRouteTableOne'
+        - !Ref 'PrivateRouteTableTwo'
+        - !Ref 'PrivateRouteTableThree'
+      ServiceName: !Join [ "", [ "com.amazonaws.", { "Ref": "AWS::Region" }, ".dynamodb" ] ]
+      VpcId: !Ref 'VPC'
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "*"
+            Principal: "*"
+            Resource: "*"
+      RouteTableIds:
+        - !Ref 'PrivateRouteTableOne'
+        - !Ref 'PrivateRouteTableTwo'
+        - !Ref 'PrivateRouteTableThree'
+      ServiceName: !Join [ "", [ "com.amazonaws.", { "Ref": "AWS::Region" }, ".s3" ] ]
+      VpcId: !Ref 'VPC'
+
+# These are the Values output by the CloudFormation template. Be careful
+# about changing any of them, because of them are exported with specific
+# names so that the other task related CF templates can use them.
+Outputs:
+  VPCId:
+    Description: The ID of the VPC that this stack is deployed in
+    Value: !Ref 'VPC'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'VPCId' ] ]
+  PublicSubnetOne:
+    Description: Public subnet one
+    Value: !Ref 'PublicSubnetOne'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'PublicSubnetOne' ] ]
+  PublicSubnetTwo:
+    Description: Public subnet two
+    Value: !Ref 'PublicSubnetTwo'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'PublicSubnetTwo' ] ]
+  PublicSubnetThree:
+    Description: Public subnet three
+    Value: !Ref 'PublicSubnetThree'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'PublicSubnetThree' ] ]
+  PrivateSubnetOne:
+    Description: Private subnet one
+    Value: !Ref 'PrivateSubnetOne'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'PrivateSubnetOne' ] ]
+  PrivateSubnetTwo:
+    Description: Private subnet two
+    Value: !Ref 'PrivateSubnetTwo'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'PrivateSubnetTwo' ] ]
+  PrivateSubnetThree:
+    Description: Private subnet three
+    Value: !Ref 'PrivateSubnetThree'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'PrivateSubnetThree' ] ]
+  DynamoDBEndpoint:
+    Description: DynamoDB Endpoint
+    Value: !Ref 'DynamoDBEndpoint'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'DynamoDBEndpint' ] ]
+  S3Endpoint:
+    Description: S3 Endpoint
+    Value: !Ref 'S3Endpoint'
+    Export:
+      Name: !Join [ ':', [ !Ref 'EnvironmentName', 'S3Endpint' ] ]
