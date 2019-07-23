@@ -1,0 +1,1 @@
+docker build -t sebsto/node-web-app .
