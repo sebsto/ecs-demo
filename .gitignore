@@ -1,2 +1,3 @@
 cdk
 .pytest_cache
+node_modules
