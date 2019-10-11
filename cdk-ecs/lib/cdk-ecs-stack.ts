@@ -25,7 +25,8 @@ export class CdkEcsStack extends cdk.Stack {
     const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "FargateService", {
       cluster,
       taskImageOptions : {
-        image : ecs.ContainerImage.fromEcrRepository(repo, 'latest')
+        image : ecs.ContainerImage.fromEcrRepository(repo, 'latest'),
+        containerName: "nginx"
       },
       desiredCount: 2  // Default is 1
     });
