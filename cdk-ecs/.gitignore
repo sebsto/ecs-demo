@@ -1,7 +1,3 @@
-.pytest_cache
-node_modules
-
-# CDK
 *.js
 !jest.config.js
 *.d.ts

@@ -1,0 +1,102 @@
+{
+    "pipeline": {
+        "name": "ECSDemo",
+        "roleArn": "arn:aws:iam::486652066693:role/AWS-CodePipeline-Service",
+        "artifactStore": {
+            "type": "S3",
+            "location": "codepipeline-eu-west-1-101905839330"
+        },
+        "stages": [
+            {
+                "name": "Source",
+                "actions": [
+                    {
+                        "name": "Source",
+                        "actionTypeId": {
+                            "category": "Source",
+                            "owner": "ThirdParty",
+                            "provider": "GitHub",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "Branch": "master",
+                            "OAuthToken": "****",
+                            "Owner": "sebsto",
+                            "PollForSourceChanges": "false",
+                            "Repo": "ecs-demo"
+                        },
+                        "outputArtifacts": [
+                            {
+                                "name": "SourceArtifact"
+                            }
+                        ],
+                        "inputArtifacts": [],
+                        "region": "eu-west-1"
+                    }
+                ]
+            },
+            {
+                "name": "Build",
+                "actions": [
+                    {
+                        "name": "Build",
+                        "actionTypeId": {
+                            "category": "Build",
+                            "owner": "AWS",
+                            "provider": "CodeBuild",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "ProjectName": "ECSDemo"
+                        },
+                        "outputArtifacts": [
+                            {
+                                "name": "BuildArtifact"
+                            }
+                        ],
+                        "inputArtifacts": [
+                            {
+                                "name": "SourceArtifact"
+                            }
+                        ],
+                        "region": "eu-west-1"
+                    }
+                ]
+            },
+            {
+                "name": "Deploy",
+                "actions": [
+                    {
+                        "name": "Deploy",
+                        "actionTypeId": {
+                            "category": "Deploy",
+                            "owner": "AWS",
+                            "provider": "ECS",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "ClusterName": "ECSDemoCluster-ECSCluster-8UA06556FH90",
+                            "ServiceName": "nginx"
+                        },
+                        "outputArtifacts": [],
+                        "inputArtifacts": [
+                            {
+                                "name": "BuildArtifact"
+                            }
+                        ],
+                        "region": "eu-west-1"
+                    }
+                ]
+            }
+        ],
+        "version": 1
+    },
+    "metadata": {
+        "pipelineArn": "arn:aws:codepipeline:eu-west-1:486652066693:ECSDemo",
+        "created": 1551253948.418,
+        "updated": 1551253948.418
+    }
+}
