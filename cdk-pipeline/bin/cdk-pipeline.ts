@@ -13,6 +13,14 @@ const github = {
     secret_manager_secret_name: "my-github-token"
 }
 
+// ECS cluster where to deploy 
+// TODO : get serviceName and clusterName from output of the ECSStack
+
+const ecs = {
+    serviceName: 'CdkEcsStack-FargateServiceECC8084D-1UY6MFYFDZ5RP',
+    clusterName: 'CdkEcsStack-MyCDKCluster12BE8B0A-1DKRLHAPOZBS4'
+}
+
 /*********************************************************/
 
 import 'source-map-support/register';
@@ -71,12 +79,10 @@ const buildAction = new pipeline_actions.CodeBuildAction({
 // https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-ecs.BaseService.html
 // https://github.com/aws/aws-cdk/issues/4375
 
-// TODO : get serviceName and clusterName from output of the ECSStack
-
 const deployAction = new MyEcsDeployAction({
             actionName: 'Deploy',
-            serviceName: 'CdkEcsStack-FargateServiceECC8084D-1UY6MFYFDZ5RP',
-            clusterName: 'CdkEcsStack-MyCDKCluster12BE8B0A-1DKRLHAPOZBS4',
+            serviceName: ecs.serviceName,
+            clusterName: ecs.clusterName,
             input: buildOutput,
         });
 
