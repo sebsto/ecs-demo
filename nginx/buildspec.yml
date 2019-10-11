@@ -8,7 +8,7 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws --version
+      - aws --version && docker --version && docker ps
       - $(aws ecr get-login --region eu-west-1 --no-include-email)
       - REPOSITORY_URI=486652066693.dkr.ecr.eu-west-1.amazonaws.com/nginx
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
