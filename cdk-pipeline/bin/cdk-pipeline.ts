@@ -85,6 +85,18 @@ const deployAction = new MyEcsDeployAction({
             clusterName: ecs.clusterName,
             input: buildOutput,
         });
+  // const deployAction = new pipeline_actions.EcsDeployAction({
+  //   actionName: 'DeployAction',
+  //   service: ecs.serviceName,
+  //   // if your file is called imagedefinitions.json,
+  //   // use the `input` property,
+  //   // and leave out the `imageFile` property
+  //   input: buildOutput,
+  //   // if your file name is _not_ imagedefinitions.json,
+  //   // use the `imageFile` property,
+  //   // and leave out the `input` property
+  //   // imageFile: sourceOutput.atPath('imageDef.json'),
+  // });
 
 // finally, create the pipeline
 const codePipeline = new pipeline.Pipeline(pipelineStack, 'Pipeline', {
