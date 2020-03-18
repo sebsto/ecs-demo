@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "cdk-ecs"
+		},
+		{
+			"path": "cdk-pipeline"
+		},
+		{
+			"path": "nginx"
+		}
+	]
+}
