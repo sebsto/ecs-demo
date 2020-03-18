@@ -8,6 +8,11 @@ body {
   color: #5a5a5a;
 }
 
+rect {
+  /* fill: #777777 */
+  fill: #fa9900
+}
+
 
 /* CUSTOMIZE THE CAROUSEL
 -------------------------------------------------- */
