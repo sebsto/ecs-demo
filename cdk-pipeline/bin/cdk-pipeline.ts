@@ -17,8 +17,8 @@ const github = {
 // TODO : get serviceName and clusterName from output of the ECSStack
 
 const ecs = {
-    serviceName: 'CdkEcsStack-FargateServiceECC8084D-1UY6MFYFDZ5RP',
-    clusterName: 'CdkEcsStack-MyCDKCluster12BE8B0A-1DKRLHAPOZBS4'
+    serviceName: 'CdkEcsStack-FargateServiceECC8084D-5ZI8ZQ2UY2AU',
+    clusterName: 'CdkEcsStack-MyCDKCluster12BE8B0A-14Z8OIWKB18MP'
 }
 
 /*********************************************************/
@@ -37,7 +37,7 @@ import { MyEcsDeployAction } from './MyEcsDeployAction';
 const app = new cdk.App();
 
 // create the stack
-const pipelineStack = new cdk.Stack(app, `ECSPipelineStack-v00`, {});
+const pipelineStack = new cdk.Stack(app, `ECSPipelineStack-v02`, {});
 
 // create the source action (github)
 const sourceOutput = new pipeline.Artifact();
