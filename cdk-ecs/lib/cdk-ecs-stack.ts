@@ -5,24 +5,27 @@ import ecr = require('@aws-cdk/aws-ecr');
 import ecs_patterns = require('@aws-cdk/aws-ecs-patterns');
 
 export class CdkEcsStack extends cdk.Stack {
+
+ private readonly TAG = "-20200521";
+
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     // create VPC with public/private subnet in 2 AZ + NAT Gateway + IGW 
-    const vpc = new ec2.Vpc(this, 'MyCDKVpc', {
+    const vpc = new ec2.Vpc(this, `MyCDKVpc${this.TAG}`, {
       maxAzs: 2 // Default is all AZs in region
     });
 
     // create ECS cluster in the VPC
-    const cluster = new ecs.Cluster(this, 'MyCDKCluster', {
+    const cluster = new ecs.Cluster(this, `MyCDKCluster${this.TAG}`, {
       vpc: vpc
     });
 
     // import existing repo 
-    const repo = ecr.Repository.fromRepositoryArn(this, 'MyCDKRepo', 'arn:aws:ecr:eu-west-1:486652066693:repository/nginx');
+    const repo = ecr.Repository.fromRepositoryArn(this, `MyCDKRepo${this.TAG}`, 'arn:aws:ecr:eu-west-1:486652066693:repository/nginx');
 
     // Create a load-balanced Fargate service and make it public
-    const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "FargateService", {
+    const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, `MyFargateService${this.TAG}`, {
       cluster,
       taskImageOptions : {
         image : ecs.ContainerImage.fromEcrRepository(repo, 'latest'),

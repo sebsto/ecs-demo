@@ -4,6 +4,8 @@
  * CUSTOMIZE THE BELOW CONSTANTS BEFORE USING THIS SCRIPT
  *********************************************************/
 
+ const TAG = "-20200521";
+
 // GitHub username and repo
 
 const github = { 
@@ -17,8 +19,8 @@ const github = {
 // TODO : get serviceName and clusterName from output of the ECSStack
 
 const ecs = {
-    serviceName: 'CdkEcsStack-FargateServiceECC8084D-5ZI8ZQ2UY2AU',
-    clusterName: 'CdkEcsStack-MyCDKCluster12BE8B0A-14Z8OIWKB18MP'
+    serviceName: 'CdkEcsStack-MyFargateService20200521Service548BBBBD-2A7PV41XSH0E',
+    clusterName: 'CdkEcsStack-MyCDKCluster2020052193F1FFB2-qx6f14ufCwiy'
 }
 
 /*********************************************************/
@@ -37,7 +39,7 @@ import { MyEcsDeployAction } from './MyEcsDeployAction';
 const app = new cdk.App();
 
 // create the stack
-const pipelineStack = new cdk.Stack(app, `ECSPipelineStack-v02`, {});
+const pipelineStack = new cdk.Stack(app, `MyECSPipelineStack-${TAG}-01`, {});
 
 // create the source action (github)
 const sourceOutput = new pipeline.Artifact();
@@ -51,7 +53,7 @@ const sourceAction = new pipeline_actions.GitHubSourceAction({
 });
 
 // create the build action
-const buildProject = new codebuild.PipelineProject(pipelineStack, 'CodeBuildProject', {
+const buildProject = new codebuild.PipelineProject(pipelineStack, `CodeBuildProject-${TAG}`, {
   projectName: 'DockerBuild',
   buildSpec: BuildSpec.fromSourceFilename('nginx/buildspec.yml'),
   environment: {
@@ -99,7 +101,7 @@ const deployAction = new MyEcsDeployAction({
   // });
 
 // finally, create the pipeline
-const codePipeline = new pipeline.Pipeline(pipelineStack, 'Pipeline', {
+const codePipeline = new pipeline.Pipeline(pipelineStack, `Pipeline${TAG}`, {
     pipelineName: 'ECSDeploy',
     stages: [
       {
