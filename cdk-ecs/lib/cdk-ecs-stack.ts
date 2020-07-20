@@ -6,7 +6,7 @@ import ecs_patterns = require('@aws-cdk/aws-ecs-patterns');
 
 export class CdkEcsStack extends cdk.Stack {
 
- private readonly TAG = "-20200521";
+ private readonly TAG = "-20200720";
 
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -31,7 +31,7 @@ export class CdkEcsStack extends cdk.Stack {
         image : ecs.ContainerImage.fromEcrRepository(repo, 'latest'),
         containerName: "nginx"
       },
-      desiredCount: 2  // Default is 1
+      desiredCount: 4  // Default is 1
     });
 
     // Output the DNS where you can access your service

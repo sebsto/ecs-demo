@@ -4,10 +4,13 @@
  * CUSTOMIZE THE BELOW CONSTANTS BEFORE USING THIS SCRIPT
  *********************************************************/
 
- const TAG = "-20200521";
+ const TAG = "-20200720";
 
 // GitHub username and repo
 
+//
+// DO NOT FORGET TO CREATE A SECRET WITH GITHUB PERSONAL ACCESS TOKEN
+//
 const github = { 
     owner: "sebsto",
     repo: "ecs-demo",
@@ -19,8 +22,8 @@ const github = {
 // TODO : get serviceName and clusterName from output of the ECSStack
 
 const ecs = {
-    serviceName: 'CdkEcsStack-MyFargateService20200521Service548BBBBD-2A7PV41XSH0E',
-    clusterName: 'CdkEcsStack-MyCDKCluster2020052193F1FFB2-qx6f14ufCwiy'
+    serviceName: 'CdkEcsStack-MyFargateService20200720ServiceE4C903D0-IYH2W2R80UUU',
+    clusterName: 'CdkEcsStack-MyCDKCluster2020072050525F9D-hS40iRiwQg3s'
 }
 
 /*********************************************************/
